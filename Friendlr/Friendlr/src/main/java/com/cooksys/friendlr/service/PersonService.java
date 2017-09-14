@@ -1,9 +1,9 @@
 package com.cooksys.friendlr.service;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -15,7 +15,7 @@ import com.cooksys.friendlr.mapper.PersonMapper;
 
 @Service
 public class PersonService {
-	private Map<Long, Person> people = new HashMap<Long, Person>();
+	private Map<Long, Person> people = new ConcurrentHashMap<Long, Person>();
 	private static Long index = 1L;
 	
 	private PersonMapper personMapper;//dependency injection
@@ -38,8 +38,6 @@ public class PersonService {
 		index++;
 		
 		Person d = new Person(index, "Will", "M");
-		d.addFriend(a);
-		d.addFriend(b);
 		people.put(index, d);
 		index++;
 		
@@ -81,15 +79,26 @@ public class PersonService {
 	{
 		if(!people.containsKey(id))
 			return false;
+		people.forEach((Long i, Person person)->{
+			person.getFriends().remove(people.get(id));//remove this deleted person from all friends lists
+		});
 		people.remove(id);
 		return true;
 	}
-	public List<PersonDto> getPersonsFriends(Long id) {
-		
+	public List<PersonDto> getPersonsFriends(Long id) 
+	{
 		return people.get(id).getFriends().stream().map(personMapper::toPersonDto).collect(Collectors.toList());
-		
 	}
 	public void giveFriend(Long idOne, Long friendId) {
-		people.get(idOne).addFriend(people.get(friendId));
+		people.get(idOne).getFriends().add(people.get(friendId));
+		people.get(friendId).getFriends().add(people.get(idOne));
+	}
+	public boolean unfriend(Long id, Long friendId) {
+		if(!people.get(id).getFriends().contains(people.get(friendId)) || !people.get(friendId).getFriends().contains(people.get(id)))
+			return false;
+		people.get(id).getFriends().remove(people.get(friendId));
+		people.get(friendId).getFriends().remove(people.get(id));
+		return true;
+		
 	}
 }

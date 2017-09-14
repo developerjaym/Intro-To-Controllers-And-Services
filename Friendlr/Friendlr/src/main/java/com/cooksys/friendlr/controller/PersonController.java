@@ -62,10 +62,24 @@ public class PersonController {
 			//by the {id} or return 404 if the ID does not exist
 	}
 	
+	@PatchMapping("{id}/patch")
+	public void patchFriend(@PathVariable Long id, @RequestBody PersonDto pdto, HttpServletResponse response)
+	{
+		if(!personService.exists(id))
+			response.setStatus(404);
+		else
+			personService.patchPerson(id, pdto);
+	}
 	
 	@PatchMapping("{id}/{friendId}")
 	public void giveFriend(@PathVariable Long id, @PathVariable Long friendId, HttpServletResponse response)
 	{
+		if(id.equals(friendId))
+		{
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			return;
+		}
+		response.setStatus(201);
 		if(personService.exists(id) && personService.exists(friendId))
 			personService.giveFriend(id, friendId);
 		else
@@ -98,6 +112,27 @@ public class PersonController {
 		//this wil overwrite the Person with the indicated ID
 			//with the unmarshalled JSON contents of the body of this request
 		//or return 404 if that ID does not exist
+	}
+	
+	@DeleteMapping("{id}/friends/{friendId}")
+	public void unfriend(@PathVariable Long id, @PathVariable Long friendId, HttpServletResponse response)
+	{
+		response.setStatus(201);
+		if(id.equals(friendId))
+		{
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			return;
+		}
+		if(personService.exists(id) && personService.exists(friendId))
+		{
+			boolean possible = personService.unfriend(id, friendId);
+			if(possible)
+				response.setStatus(200);
+			else
+				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+		}
+		else
+			response.setStatus(404);
 	}
 	
 	@DeleteMapping("{id}")

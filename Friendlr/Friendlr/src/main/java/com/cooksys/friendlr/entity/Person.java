@@ -1,7 +1,7 @@
 package com.cooksys.friendlr.entity;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Person {
 	private Long id;
@@ -9,28 +9,21 @@ public class Person {
 	private String lastName;
 	
 	//add friends list
-	private List<Person> friends;
+	private Set<Person> friends;
 	
 	
 	public Person()
 	{
-		
+		friends = ConcurrentHashMap.newKeySet();//new HashSet<Person>();
 	}
 
 	public Person(Long iD, String firstName, String lastName) {
 		id = iD;
 		this.firstName = firstName;
 		this.lastName = lastName;
-		friends = new ArrayList<Person>();
+		friends = ConcurrentHashMap.newKeySet();//new HashSet<Person>();
 	}
-
-	public void addFriend(Person friend)
-	{
-		if(friends == null)
-			friends = new ArrayList<Person>();
-		friends.add(friend);
-	}
-	public List<Person> getFriends()
+	public Set<Person> getFriends()
 	{
 		return friends;
 	}
